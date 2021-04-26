@@ -54,4 +54,82 @@ public class Agent {
         return result;
     }
 
+    public String listServer(String serverName, String path) throws Exception{
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        URIBuilder builder = new URIBuilder(BASE_URI+serverName+"list"+path);
+        return GetRequestAsString(httpClient, builder);
     }
+
+    private int type(String elem){
+        if(elem.startsWith("-")) return 0;
+        if(elem.startsWith("d")) return 1;
+        if(elem.startsWith("l")) return 2;
+        return 0;
+    }
+
+    /**
+     * Return true if elem is a link
+     */
+    public boolean isLink(String elem){
+        if (type(elem)==2) return true;
+        else return false;
+    }
+
+    /**
+     * Return true if elem is a directory
+     */
+    public boolean isDirectory(String elem) {
+        if (type(elem)==1) return true;
+        else return false;
+    }
+
+    /**
+     * Return true if elem is a file
+     */
+    public boolean isFile(String elem) {
+        if (type(elem)==0) return true;
+        else return false;
+    }
+
+    /**
+     * method to get a dir or file name
+     * @param lsLine the line given by the method list
+     * @return the name of the file or dir name
+     **/
+    protected String getFileName(String lsLine) {
+        String[] splited = lsLine.split(" ");
+        return splited[splited.length - 1];
+    }
+
+    public String[] listAsArray(String list){
+        return list.split("\n");
+    }
+
+    public void downloadServer(String serverName, String path) {
+        try {
+            String[] root = this.listAsArray(this.listServer(serverName, path));
+            for (String elem : root) {
+                System.out.println(elem);
+                if (isDirectory(elem)) {
+                    downloadServer(serverName, path+getFileName(elem)+"/");
+                }
+                if (isFile(elem)){
+                    CloseableHttpClient httpClient = HttpClients.createDefault();
+                    try{
+                    URIBuilder builder = new URIBuilder(BASE_URI+serverName+"file"+path+getFileName(elem));
+                    HttpGet request = new HttpGet(builder.build());
+                    httpClient.execute(request);
+                    }
+                    catch (URISyntaxException uri){
+
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+}
