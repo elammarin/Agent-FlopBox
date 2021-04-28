@@ -11,6 +11,10 @@
   <name>agentFlopBox</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
+  <properties>
+	      <jersey.version>2.17</jersey.version>
+		          <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+				    </properties>
 
 
   <dependencies>
@@ -21,23 +25,22 @@
       <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-    <dependency>
+    <!--dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.5.3</version>
-    </dependency>
+    </dependency-->
+    <dependency>
+	      <groupId>org.apache.httpcomponents</groupId>
+	      <artifactId>httpclient</artifactId>
+	      <version>4.5.13</version>
+		</dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>4.4.13</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.13</version>
+      <version>4.4.12</version>
     </dependency>
   </dependencies>
-
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
@@ -63,7 +66,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.22.1</version>
         </plugin>
-        <plugin>
+        <!--plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.0.2</version>
@@ -75,7 +78,7 @@
             </archive>
           </configuration>
 
-        </plugin>
+        </plugin-->
 
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
@@ -94,6 +97,30 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
+	 <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>agentFlopbox-${project.version}</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>fil.sr2.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
       </plugins>
     </pluginManagement>
   </build>
