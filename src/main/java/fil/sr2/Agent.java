@@ -64,7 +64,7 @@ public class Agent {
         if(elem.startsWith("-")) return 0;
         if(elem.startsWith("d")) return 1;
         if(elem.startsWith("l")) return 2;
-        return 0;
+        return -1;
     }
 
     /**
@@ -110,10 +110,10 @@ public class Agent {
             String[] root = this.listAsArray(this.listServer(serverName, path));
             for (String elem : root) {
                 System.out.println(elem);
-                if (isDirectory(elem)) {
+                if (isDirectory(elem) || isLink(elem)) {
                     downloadServer(serverName, path+getFileName(elem)+"/");
                 }
-                if (isFile(elem)){
+                else if (isFile(elem)){
                     CloseableHttpClient httpClient = HttpClients.createDefault();
                     try{
                     URIBuilder builder = new URIBuilder(BASE_URI+serverName+"file"+path+getFileName(elem));
@@ -123,6 +123,9 @@ public class Agent {
                     catch (URISyntaxException uri){
 
                     }
+                }
+                else{
+                    System.out.println("emptyDir");
                 }
             }
         }
