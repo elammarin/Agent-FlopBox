@@ -9,9 +9,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 
 public class Agent {
@@ -101,6 +105,11 @@ public class Agent {
         return splited[splited.length - 1];
     }
 
+    protected String getDate(String lsLine) {
+        String[] splited = lsLine.split("\\s+");
+        return splited[5]+"-"+splited[6]+"-"+splited[7];
+    }
+
     public String[] listAsArray(String list){
         return list.split("\n");
     }
@@ -114,14 +123,23 @@ public class Agent {
                     downloadServer(serverName, path+getFileName(elem)+"/");
                 }
                 else if (isFile(elem)){
-                    CloseableHttpClient httpClient = HttpClients.createDefault();
-                    try{
-                    URIBuilder builder = new URIBuilder(BASE_URI+serverName+"file"+path+getFileName(elem));
-                    HttpGet request = new HttpGet(builder.build());
-                    httpClient.execute(request);
+                    File f = new File("/tmp/"+serverName+path+getFileName(elem));
+                    String dateStr = getDate(elem);
+                    SimpleDateFormat formatter = new SimpleDateFormat("MMM-dd-yyyy", Locale.ENGLISH);
+                    Date date = (Date)formatter.parse(dateStr);
+                    long mills = date.getTime();
+                    if(f.exists() && !f.isDirectory() && f.lastModified()>=mills) {
+                        // do nothing
                     }
-                    catch (URISyntaxException uri){
+                    else {
+                        CloseableHttpClient httpClient = HttpClients.createDefault();
+                        try {
+                            URIBuilder builder = new URIBuilder(BASE_URI + serverName + "file" + path + getFileName(elem));
+                            HttpGet request = new HttpGet(builder.build());
+                            httpClient.execute(request);
+                        } catch (URISyntaxException uri) {
 
+                        }
                     }
                 }
                 else{
