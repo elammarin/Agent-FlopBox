@@ -4,6 +4,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -19,6 +20,7 @@ import java.util.Locale;
 
 
 public class Agent {
+        public boolean alreadyStored = false;
 
         public static final String BASE_URI = "http://localhost:8080/flopboxApp/servers/";
 
@@ -123,20 +125,42 @@ public class Agent {
                     downloadServer(serverName, path+getFileName(elem)+"/");
                 }
                 else if (isFile(elem)){
-                    File f = new File("/tmp/"+serverName+path+getFileName(elem));
+                    File f = new File("/tmp/"+serverName+path+getFileName(elem)).getAbsoluteFile();
+                    System.out.println(f.getName());
+                    System.out.println("/tmp/"+serverName+path+getFileName(elem));
                     String dateStr = getDate(elem);
                     SimpleDateFormat formatter = new SimpleDateFormat("MMM-dd-yyyy", Locale.ENGLISH);
                     Date date = (Date)formatter.parse(dateStr);
-                    long mills = date.getTime();
-                    if(f.exists() && !f.isDirectory() && f.lastModified()>=mills) {
+                    long mills = date.getTime()*(-1);
+                    if(f.exists() && !f.isDirectory() && f.lastModified()==mills) {
                         // do nothing
+                        System.out.println("nothing to update!");
                     }
-                    else {
+                    else if (!f.isFile() && alreadyStored){
+                        System.out.println("ici");
+                        CloseableHttpClient httpClient = HttpClients.createDefault();
+                        try {
+                            URIBuilder bu = new URIBuilder(BASE_URI + serverName + "file" + path + getFileName(elem));
+                            HttpGet re = new HttpGet(bu.build());
+                            httpClient.execute(re);
+                            f.setLastModified(mills);
+                        } catch (URISyntaxException uri) {
+
+                        }
+                        URIBuilder b = new URIBuilder(BASE_URI + serverName + "directory" + path + ".deleted");
+                        PostRequestAsString(httpClient, b);
+                        URIBuilder builder = new URIBuilder(BASE_URI + serverName + "file" + path + getFileName(elem));
+                        builder.setParameter("newName", "/.deleted/"+getFileName(elem));
+                        HttpPut request = new HttpPut(builder.build());
+                        httpClient.execute(request);
+                    }
+                    else{
                         CloseableHttpClient httpClient = HttpClients.createDefault();
                         try {
                             URIBuilder builder = new URIBuilder(BASE_URI + serverName + "file" + path + getFileName(elem));
                             HttpGet request = new HttpGet(builder.build());
                             httpClient.execute(request);
+                            f.setLastModified(mills);
                         } catch (URISyntaxException uri) {
 
                         }
